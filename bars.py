@@ -9,67 +9,63 @@ def load_data(filepath):
 
 
 def get_biggest_bar(json_file_utf8_content):
-    #создание списка критериев (здесь - кол-во сидячих мест)
+
     criteria_list = []
     criteria_number = 0
     for item_self in json_file_utf8_content["features"]:
         criteria_list.append(json_file_utf8_content["features"][criteria_number]["properties"]["Attributes"]["SeatsCount"])
         criteria_number = criteria_number + 1
-    #поиск номера нужного элемента в списке критериев
-    for criteria_number, criteria in enumerate(criteria_list):
-            if max(criteria_list) == criteria:
-                criteria_number_result=criteria_number
-    return json_file_utf8_content["features"][criteria_number_result]
+    return criteria_list.index(max(criteria_list))
 
 
 def get_smallest_bar(json_file_utf8_content):
-    #создание списка критериев (здесь - кол-во сидячих мест)
+
     criteria_list = []
     criteria_number = 0
     for item_self in json_file_utf8_content["features"]:
         criteria_list.append(json_file_utf8_content["features"][criteria_number]["properties"]["Attributes"]["SeatsCount"])
         criteria_number = criteria_number + 1
-    #поиск номера нужного элемента в списке критериев
-    for criteria_number, criteria in enumerate(criteria_list):
-            if min(criteria_list) == criteria:
-                criteria_number_result=criteria_number
-    return json_file_utf8_content["features"][criteria_number_result]
+    return criteria_list.index(min(criteria_list))
 
 
 def get_closest_bar(json_file_utf8_content, latitude, longitude):
-    #создание списка критериев (здесь - кол-во сидячих мест)
+
     criteria_list = []
     criteria_number = 0
     for item_self in json_file_utf8_content["features"]:
         distance=sqrt((float(json_file_utf8_content["features"][criteria_number]["geometry"]["coordinates"][0])-longtitude)**2+(float(json_file_utf8_content["features"][criteria_number]["geometry"]["coordinates"][1])-latitude)**2)
         criteria_list.append(distance)
         criteria_number = criteria_number + 1
-    #поиск номера нужного элемента в списке критериев
-    for criteria_number, criteria in enumerate(criteria_list):
-            if min(criteria_list) == criteria:
-                criteria_number_result=criteria_number
-    return json_file_utf8_content["features"][criteria_number_result]
+    return criteria_list.index(min(criteria_list))
 
 
-def pretty_print_json(json_file_utf8_content):
-    print(json.dumps(json_file_utf8_content, indent=4, ensure_ascii=False, sort_keys=True))
+def print_barinfo(json_file_utf8_content,criteria_number_result):
 
+    print("Название: " + str(json_file_utf8_content["features"][criteria_number_result]["properties"]["Attributes"]["Name"]))
+    print("Телефон: " + str(json_file_utf8_content["features"][criteria_number_result]["properties"]["Attributes"]["PublicPhone"][0]).replace("{'PublicPhone': '","").replace("'}",""))
+    print("Адрес: " + str(json_file_utf8_content["features"][criteria_number_result]["properties"]["Attributes"]["Address"]))
+    print("Количество мест: " + str(json_file_utf8_content["features"][criteria_number_result]["properties"]["Attributes"]["SeatsCount"]))
+    print("Округ: " + str(json_file_utf8_content["features"][criteria_number_result]["properties"]["Attributes"]["AdmArea"]))
+    print("Район: " + str(json_file_utf8_content["features"][criteria_number_result]["properties"]["Attributes"]["District"]))
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        filepath = (sys.argv[1].replace("'", "")).replace("\|", "/")
+        filepath = (sys.argv[1])
     else:
-        filepath = 'bars.json'
+        print("Введите путь к файлу с информацией о барах")
+        filepath = input()
+    bars_info = load_data(filepath)
     print("Самый крупный по количеству мест бар в Москве:")
-    pretty_print_json(get_biggest_bar(load_data(filepath)))
+    print_barinfo(bars_info, get_biggest_bar(bars_info))
     print()
     print("Самый маленький по количеству мест бар в Москве:")
-    pretty_print_json(get_smallest_bar(load_data(filepath)))
+    print_barinfo(bars_info, get_smallest_bar(bars_info))
     print()
     try:
         print("Для того чтобы определить ближайший к Вам бар, введите Ваши координаты")
         latitude = float(input("Широта: "))
         longtitude = float(input("Долгота: "))
-        pretty_print_json(get_closest_bar(load_data(filepath), latitude, longtitude))
+        print("Ближайший бар:")
+        print_barinfo(bars_info, get_closest_bar(bars_info, latitude, longtitude))
     except ValueError:
         print('введены данные не числового типа')
